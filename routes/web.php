@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\ProfileController;
 
 
 Route::middleware('guest')->group(function () {
@@ -24,6 +25,8 @@ Route::middleware('guest')->group(function () {
 });
 
 
+
+
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -37,4 +40,9 @@ Route::middleware('auth')->group(function () {
 
     Route::view('/', 'upload')->middleware('verified')->name('home');
     Route::post('/render', [PdfEditController::class, 'edit'])->middleware('verified');
+
+    Route::get('/profile', [ProfileController::class, 'show'])->middleware('verified');
+    Route::post('/profile', [ProfileController::class, 'save'])->middleware('verified');
+    Route::patch('/profile', [ProfileController::class, 'update'])->middleware('verified');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->middleware('verified');
 });

@@ -82,15 +82,21 @@
                 @auth
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link btn btn-outline-light me-2 px-3" href="#" style="border-color: #00d4ff; color: #00d4ff; transition: all 0.3s ease;">
+                            <a class="nav-link btn {{ request()->routeIs('home') ? 'btn-light' : 'btn-outline-light' }} me-2 px-3" href="{{ route('home') }}" style="{{ request()->routeIs('home') ? 'background-color: #00d4ff; border-color: #00d4ff; color: white;' : 'border-color: #00d4ff; color: #00d4ff;' }} transition: all 0.3s ease;">
                                 <i class="bi bi-file-earmark-plus me-1"></i>
                                 Upload New PDF
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link btn {{ request()->is('profile') ? 'btn-light' : 'btn-outline-light' }} me-2 px-3" href="/profile" style="{{ request()->is('profile') ? 'background-color: #00d4ff; border-color: #00d4ff; color: white;' : 'border-color: #00d4ff; color: #00d4ff;' }} transition: all 0.3s ease;">
+                                <i class="bi bi-person-circle me-1"></i>
+                                Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                 @csrf
-                                <button type="submit" class="nav-link btn btn-outline-danger px-3" style="border-color: #ff4757; color: #ff4757; transition: all 0.3s ease;">
+                                <button type="submit" class="nav-link btn btn-outline-danger px-3" style="width: 100%; text-align: center; border-color: #ff4757; color: #ff4757; transition: all 0.3s ease;">
                                     <i class="bi bi-box-arrow-right me-1"></i>
                                     Logout
                                 </button>

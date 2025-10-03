@@ -9,6 +9,12 @@
             <p class="auth-subtitle">Enter your email and we'll send you a reset link</p>
         </header>
 
+        @if (session('status'))
+            <div class="auth-success">
+                {{ session('status') }}
+            </div>
+        @endif
+
         <div class="auth-form-container">
             <form method="POST" action="{{ route('password.email') }}" class="auth-form">
                 @csrf
