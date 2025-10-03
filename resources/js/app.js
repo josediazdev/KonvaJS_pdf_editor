@@ -213,7 +213,7 @@ async function loadPdfAsImage() {
             // UPDATE STATE IN THE HEADER
             const statusIndicator = document.getElementById('pdf-status');
             if (statusIndicator) {
-                statusIndicator.textContent = 'PDF cargado correctamente';
+                statusIndicator.textContent = 'PDF uploaded successfully';
                 statusIndicator.style.color = '#48bb78';
             }
 
@@ -933,26 +933,30 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
     img.src = imageUrl;
 }
 
+
+
+
 // =============================================================================
-// MÓDULO 3: EXPORTACIÓN A PDF CON JSPDF
+// MODULE 3: EXPORT TO PDF USING JSPDF
 // =============================================================================
 
 /**
- * MÓDULO 3: EXPORTACIÓN FINAL A PDF
+ * MODULE 3: FINAL PDF EXPORT
  * ================================
  *
- * Convierte la escena completa de KonvaJS (PDF manipulado + elementos agregados)
- * en un archivo PDF descargable usando la librería jsPDF.
+ * Converts the complete KonvaJS scene (manipulated PDF + added elements)
+ * into a downloadable PDF file using the jsPDF library.
  *
- * Proceso: Separar textos → Separar imágenes → Rasterizar escena → Combinar en PDF
+ * Process: Separate Text → Separate Images → Rasterize Scene → Combine into PDF
  *
- * PROCESAMIENTO AVANZADO:
- * - Textos: Procesados individualmente con fuente, tamaño y rotación
- * - Imágenes: Procesadas individualmente con escala, rotación y transformación
- * - Escena completa: Renderizada como imagen de fondo con pixelRatio alto
+ * ADVANCED PROCESSING:
+ * - Text: Processed individually with font, size, and rotation
+ * - Images: Processed individually with scaling, rotation, and transformation
+ * - Complete Scene: Rendered as a background image with a high pixelRatio
  */
+
 function setupPdfExport() {
-    // Obtener referencia al botón de exportación desde el DOM
+    // Get reference to the export button from the DOM
     const saveButton = document.getElementById('save-pdf-btn');
 
     if (!saveButton) {
@@ -960,12 +964,12 @@ function setupPdfExport() {
         return;
     }
 
-    // CONFIGURAR EVENT LISTENER PARA EXPORTACIÓN
+    // CONFIGURE EVENT LISTENER FOR EXPORT
     saveButton.addEventListener('click', function (event) {
         event.preventDefault(); // Prevenir cualquier comportamiento por defecto
         console.log('Iniciando exportación a PDF...');
 
-        // VALIDACIÓN DE DEPENDENCIAS
+        // DEPENDENCY VALIDATION
         if (typeof jsPDF === 'undefined') {
             console.error('jsPDF no está cargado');
             alert('Error: jsPDF library no está disponible');
@@ -973,103 +977,107 @@ function setupPdfExport() {
         }
 
         try {
-            // PASO 1: INICIALIZACIÓN DE JSPDF
-            // Crear documento PDF con orientación horizontal ('l'), unidades en píxeles ('px')
-            // Dimensiones basadas en el stage de KonvaJS
+            // STEP 1: JSPDF INITIALIZATION
+            // Create PDF document with landscape orientation ('l'), units in pixels ('px')
+            // Dimensions based on the KonvaJS stage
             const pdf = new jsPDF('l', 'px', [stage.width(), stage.height()]);
 
-            // Configurar color de texto por defecto
+            // Configure default text color
             pdf.setTextColor('#000000');
 
-            // PASO 2: EXPORTAR TEXTOS POR SEPARADO
-            // KonvaJS no exporta texto nativamente a PDF, así que procesamos cada nodo Text
+            // STEP 2: EXPORT TEXT SEPARATELY
+            // KonvaJS does not natively export text to PDF, so we process each Text node
             console.log('Exportando textos...');
 
-            // stage.find('Text') busca todos los nodos de tipo Konva.Text en la escena
+            // stage.find('Text') finds all Konva.Text type nodes in the scene
             stage.find('Text').forEach((textNode) => {
-                // CONVERSIÓN DE UNIDADES
-                // jsPDF usa puntos (1/72 pulgada), Konva usa píxeles
-                // Factor de conversión aproximado: 1px ≈ 0.75pt
+                // UNIT CONVERSION
+                // jsPDF uses points (1/72 inch), Konva uses pixels
+                // Approximate conversion factor: 1px ≈ 0.75pt
                 const fontSizeInPoints = textNode.fontSize() / 0.75;
                 pdf.setFontSize(fontSizeInPoints);
-                // EXTRAER PROPIEDADES DEL NODO
-                const textContent = textNode.text();         // Contenido del texto
-                const x = textNode.x();                     // Posición X
-                const y = textNode.y();                     // Posición Y
+                // EXTRACT NODE PROPERTIES
+                const textContent = textNode.text();
+                const x = textNode.x();
+                const y = textNode.y();
 
-                // MANEJO DE ROTACIÓN
-                // jsPDF usa rotación positiva en sentido horario
-                // KonvaJS usa rotación positiva en sentido antihorario
-                // getAbsoluteRotation() obtiene la rotación total incluyendo ancestros
+                // ROTATION HANDLING
+                // jsPDF uses positive rotation in a clockwise direction
+                // KonvaJS uses positive rotation in a counter-clockwise direction
+                // getAbsoluteRotation() gets the total rotation including ancestors
+
                 const rotation = -textNode.getAbsoluteRotation();
 
-                // AGREGAR TEXTO AL PDF
-                // baseline: 'top' asegura posicionamiento correcto desde la parte superior
+                // ADD TEXT TO PDF
+                // baseline: 'top' ensures correct positioning from the top edge
+
                 pdf.text(textContent, x, y, {
                     baseline: 'top',
                     angle: rotation,
                 });
             });
 
-            // PASO 2.5: EXPORTAR IMÁGENES POR SEPARADO
-            // Las imágenes también necesitan procesamiento individual para preservar rotación y escala
+            // STEP 2.5: EXPORT IMAGES SEPARATELY
+            // Images also require individual processing to preserve rotation and scaling
             console.log('Exportando imágenes...');
 
-            // stage.find('Image') busca todos los nodos de tipo Konva.Image en la escena
-            // Excluimos la imagen de fondo del PDF (que tiene name: 'pdf-background')
+            // stage.find('Image') finds all Konva.Image type nodes in the scene
+            // We exclude the PDF background image (which has name: 'pdf-background')
             stage.find('Image').forEach((imageNode) => {
                 // SALTAR LA IMAGEN DE FONDO DEL PDF
                 if (imageNode.name() === 'pdf-background') {
-                    return; // Continuar con la siguiente imagen
+                    return; // Continue with the next image
                 }
 
                 try {
-                    // EXTRAER PROPIEDADES DEL NODO
-                    const x = imageNode.x();                      // Posición X
-                    const y = imageNode.y();                      // Posición Y
-                    const width = imageNode.width();              // Ancho
-                    const height = imageNode.height();            // Alto
+                    // EXTRACT NODE PROPERTIES
+                    const x = imageNode.x();
+                    const y = imageNode.y();
+                    const width = imageNode.width();
+                    const height = imageNode.height();
 
-                    // MANEJO DE ROTACIÓN Y ESCALA
-                    // getAbsoluteRotation() obtiene la rotación total incluyendo ancestros
+                    // ROTATION AND SCALE HANDLING
+                    // getAbsoluteRotation() gets the total rotation including ancestors
                     const rotation = imageNode.getAbsoluteRotation();
                     const scaleX = imageNode.scaleX();
                     const scaleY = imageNode.scaleY();
 
-                    // CALCULAR DIMENSIONES ESCALADAS
+                    // CALCULATE SCALED DIMENSIONS
                     const scaledWidth = width * scaleX;
                     const scaledHeight = height * scaleY;
 
-                    // CONVERTIR IMAGEN A BASE64
-                    // Usar toDataURL() en el elemento HTML Image subyacente
+                    // CONVERT IMAGE TO BASE64
+                    // Use toDataURL() on the underlying HTML Image element
                     const imageElement = imageNode.image();
                     if (imageElement && imageElement.toDataURL) {
                         const imageDataURL = imageElement.toDataURL('image/png');
 
-                        // AGREGAR IMAGEN AL PDF
-                        // jsPDF maneja rotación y escala automáticamente
+                        // ADD IMAGE TO PDF
+                        // jsPDF handles rotation and scaling automatically
                         pdf.addImage(
-                            imageDataURL,     // Imagen en formato Base64
-                            'PNG',           // Formato de la imagen
-                            x,               // Posición X
-                            y,               // Posición Y
-                            scaledWidth,     // Ancho escalado
-                            scaledHeight,    // Alto escalado
-                            undefined,       // Sin alias
-                            'FAST'          // Compresión rápida
+                            imageDataURL,     // Image Base64 format
+                            'PNG',
+                            x,
+                            y,
+                            scaledWidth,
+                            scaledHeight,
+                            undefined,
+                            'FAST'
                         );
 
-                        // APLICAR ROTACIÓN SI ES NECESARIA
+                        // APPLY ROTATION IF NECESSARY
                         if (rotation !== 0) {
-                            // jsPDF rota en sentido horario positivo
-                            // KonvaJS rota en sentido antihorario positivo
+
+
+                            // jsPDF rotates positive clockwise
+                            // KonvaJS rotates positive counter-clockwise
                             const pdfRotation = -rotation;
 
-                            // Calcular el centro de rotación
+                            // Calculate the center of rotation
                             const centerX = x + scaledWidth / 2;
                             const centerY = y + scaledHeight / 2;
 
-                            // Aplicar rotación alrededor del centro
+                            // Apply rotation around the center
                             pdf.text('', centerX, centerY, {
                                 angle: pdfRotation
                             });
@@ -1079,33 +1087,33 @@ function setupPdfExport() {
                     }
                 } catch (imageError) {
                     console.warn('Error al procesar imagen individual:', imageError);
-                    // Continuar con otras imágenes
+                    // Continue with other images
                 }
             });
 
-            // PASO 3: EXPORTAR ESCENA COMPLETA COMO IMAGEN
+            // STEP 3: EXPORT COMPLETE SCENE AS IMAGE
             console.log('Exportando escena como imagen...');
 
-            // stage.toDataURL() convierte todo el canvas de KonvaJS a imagen Base64
-            // pixelRatio: 2 duplica la resolución para calidad retina/displays de alta densidad
+            // stage.toDataURL() converts the entire KonvaJS canvas to a Base64 image
+            // pixelRatio: 2 doubles the resolution for retina/high-density displays
             const canvasDataURL = stage.toDataURL({
                 pixelRatio: 2,
                 mimeType: 'image/png'  // Formato PNG por defecto
             });
 
-            // AGREGAR IMAGEN AL PDF
-            // Posición (0,0) cubre toda la página del PDF
+            // ADD IMAGE TO PDF
+            // Position (0,0) covers the entire PDF page
             pdf.addImage(
-                canvasDataURL,     // Imagen en formato Base64
-                'PNG',            // Formato de la imagen
-                0,                // Posición X
-                0,                // Posición Y
-                stage.width(),    // Ancho de la imagen
-                stage.height()    // Alto de la imagen
+                canvasDataURL,     // backgruond image Base64 format
+                'PNG',
+                0,
+                0,
+                stage.width(),
+                stage.height()
             );
 
-            // PASO 4: DESCARGA DEL ARCHIVO
-            // Mostrar diálogo de guardar archivo al usuario
+            // STEP 4: FILE DOWNLOAD
+            // Show save file dialog to the user
             pdf.save('canvas.pdf');
 
             console.log('PDF exportado exitosamente');
