@@ -1,69 +1,70 @@
 /**
- * CANVAS.JS - Manipulación de PDFs con KonvaJS
+ * CANVAS.JS - PDF Manipulation with KonvaJS
  * ==============================================
  *
- * Sistema completo para cargar PDFs, manipularlos visualmente y exportarlos.
- * Utiliza PDF.js para renderizado y KonvaJS para manipulación interactiva.
+ * A complete system for loading, visually manipulating, and exporting PDFs.
+ * It uses PDF.js for rendering and KonvaJS for interactive manipulation.
  *
- * Arquitectura: PDF → Canvas Temporal → Konva.Image → Manipulación → PDF Export
+ * Architecture: PDF → Temporary Canvas → Konva.Image → Manipulation → PDF Export
  *
- * Dependencias requeridas:
- * - PDF.js (pdfjsLib global)
- * - KonvaJS (Konva global)
- * - jsPDF (jsPDF global)
- * - Variable global pdfBase64Data con datos del PDF en Base64
- * - Elemento DOM con id 'save-pdf-btn'
+ * Required Dependencies:
+ * - PDF.js (as the global `pdfjsLib`)
+ * - KonvaJS (as the global `Konva`)
+ * - jsPDF (as the global `jsPDF`)
+ * - A global variable `pdfBase64Data` containing the PDF data in Base64.
+ * - A DOM element with the id 'save-pdf-btn'.
  *
- * Módulos principales:
- * 1. CARGA DEL PDF: Conversión Base64 → Canvas Temporal → Konva.Image
- * 2. MANIPULACIÓN: Agregado de nodos interactivos (texto, imágenes) sobre el canvas
- *    - Elementos arrastrables y editables
- *    - Sistema de herramientas en HTML para creación de contenido
- *    - Interacción intuitiva con mouse y teclado
- * 2.5. GESTIÓN DE TEXTOS: Creación, edición y eliminación de elementos de texto
- * 2.6. GESTIÓN DE IMÁGENES: Subida, manipulación y eliminación de elementos de imagen
- * 2.7. INTERACCIÓN GLOBAL: Gestión de eventos del canvas y modos de edición
- * 3. EXPORTACIÓN: Generación de PDF final con jsPDF
- * 4. EXPORTACIÓN DE IMÁGENES: Generación de imágenes PNG y JPEG de la escena
+ * Core Modules:
+ * 1. PDF LOADING: Converts the Base64 data to a temporary canvas, then to a Konva.Image.
+ *
+ * 2. MANIPULATION: Adds interactive nodes (text, images) onto the canvas.
+ * - Elements are draggable and editable.
+ * - An HTML-based toolbar is used for content creation.
+ * - Provides intuitive mouse and keyboard interaction.
+ * 2.5. TEXT MANAGEMENT: Create, edit, and delete text elements.
+ * 2.6. IMAGE MANAGEMENT: Upload, manipulate, and delete image elements.
+ * 2.7. GLOBAL INTERACTION: Manages canvas events and editing modes.
+ *
+ * 3. EXPORTATION: Generates the final PDF using jsPDF.
  */
 
 // =============================================================================
-// INICIALIZACIÓN Y CONFIGURACIÓN PRINCIPAL
+// INITIALIZATION AND MAIN CONFIGURATION
 // =============================================================================
 
 /**
- * CONFIGURACIÓN PRINCIPAL DEL SISTEMA
+ * SYSTEM'S MAIN CONFIGURATION
  * ===================================
- * Inicializa KonvaJS, configura el stage/layer, y coordina la carga de módulos.
+ * Initializes KonvaJS, sets up the stage and layer, and coordinates module loading.
  */
 
-// INICIALIZACIÓN DEL STAGE Y LAYER PRINCIPALES
-// Stage: Contenedor principal del canvas de KonvaJS
-// Layer: Capa donde se dibujan todos los elementos gráficos
+// INITIALIZE MAIN STAGE AND LAYER
+// Stage: The main container for the KonvaJS canvas.
+// Layer: The layer where all graphical elements are drawn.
+
 
 const stage = new Konva.Stage({
-    height: window.innerHeight,    // Alto de la ventana del navegador
-    width: window.innerWidth,      // Ancho de la ventana del navegador
-    container: "konva-holder",     // ID del elemento HTML contenedor
+    height: window.innerHeight,
+    width: window.innerWidth,
+    container: "konva-holder",
 });
 
 const layer = new Konva.Layer();
 stage.add(layer);
 
-// SISTEMA DE EVENTOS PARA COORDINACIÓN
-// En lugar de setTimeout arbitrario, usamos eventos personalizados
+/// EVENT SYSTEM FOR COORDINATION
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM cargado, inicializando sistema...');
 
-    // ESPERAR A QUE LAS DEPENDENCIAS ESTÉN DISPONIBLES
-    // Usar Promise para esperar a que pdfBase64Data esté disponible
+    // WAIT FOR DEPENDENCIES TO BE AVAILABLE
+    // Use a Promise to wait for pdfBase64Data to be available/
     const checkDependencies = () => {
         return new Promise((resolve) => {
             const check = () => {
                 if (typeof window.pdfBase64Data !== 'undefined' && window.pdfBase64Data) {
                     resolve();
                 } else {
-                    // Reintentar en el siguiente ciclo de eventos
+                    // Retry in the next event loop cycle
                     setTimeout(check, 10);
                 }
             };
@@ -71,55 +72,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // INICIALIZAR SISTEMA CUANDO TODO ESTÉ LISTO
+    // INITIALIZE SYSTEM WHEN EVERYTHING IS READY/
     checkDependencies().then(() => {
         console.log('Dependencias verificadas, cargando PDF...');
         loadPdfAsImage();
     });
 
-    // CONFIGURAR SISTEMA DE EXPORTACIÓN
+    // CONFIGURE EXPORT SYSTEM/
     setupPdfExport();
 
-    // CONFIGURAR SISTEMA DE DRAG & DROP
+    // CONFIGURE DE DRAG & DRO SYSTEM
     setupDragDrop();
 
-    // CONFIGURAR INTERACCIÓN GLOBAL DEL CANVAS
+    // CONFIGURE GLOBAL INTERACTION ON CANVAS
     setupCanvasInteraction();
 });
 
-// INICIALIZAR ELEMENTOS DEMO CUANDO EL PDF ESTÉ CARGADO
+// INITIALIZE ELEMENTS WHEN THE PDF IS LOADED
 document.addEventListener('pdfLoaded', function() {
     console.log('PDF cargado exitosamente - listo para edición');
-    // Los elementos demo fueron removidos ya que ahora tenemos drag & drop
-    // setupDragDrop() ya está inicializado
 });
 
 
 
-// =============================================================================
-// MÓDULO 1: CARGA DEL PDF COMO IMAGEN EN KONVAJS
+ // =============================================================================
+// MODULE 1: LOADING THE PDF AS AN IMAGE IN KONVAJS
 // =============================================================================
 
 /**
- * MÓDULO 1: CARGA Y CONVERSIÓN DEL PDF
+ * MODULE 1: PDF LOADING AND CONVERSION
  * ====================================
  *
- * Convierte un PDF (Base64) en una imagen manipulable dentro de KonvaJS.
- * Proceso: Base64 → PDF.js → Canvas Temporal → Imagen HTML → Konva.Image
+ * Converts a PDF (Base64) into a manipulable image within KonvaJS.
+ * Process: Base64 → PDF.js → Temporary Canvas → HTML Image → Konva.Image
  *
- * Esta función maneja todo el pipeline de conversión del PDF a un formato
- * que KonvaJS puede manipular como cualquier otra imagen.
+ * This function handles the entire pipeline for converting the PDF into a format
+ * that KonvaJS can manipulate like any other image.
+ *
+ *
  */
 async function loadPdfAsImage() {
 
-    // VALIDACIÓN DE DEPENDENCIAS
-    // Verificar que tenemos los datos del PDF en Base64
+    // DEPENDENCY VALIDATION
+    // Check that we have the PDF data in Base64
     if (typeof window.pdfBase64Data === 'undefined' || !window.pdfBase64Data) {
         console.log('No hay datos Base64 del PDF disponibles');
         return;
     }
 
-    // Verificar que PDF.js está disponible globalmente
+    // Verify that PDF.js is globally available/
     if (typeof pdfjsLib === 'undefined') {
         console.error('PDF.js no está cargado');
         return;
@@ -128,42 +129,42 @@ async function loadPdfAsImage() {
     console.log('Convirtiendo PDF a imagen para KonvaJS...');
 
     try {
-        // PASO 1: DECODIFICACIÓN BASE64
-        // Convertir string Base64 a datos binarios que PDF.js puede procesar
-        // atob() es función nativa del navegador para decodificación Base64
+        // STEP 1: BASE64 DECODING
+        // Convert Base64 string to binary data that PDF.js can process
+        // atob() is the browser's native function for Base64 decoding
         const pdfData = atob(window.pdfBase64Data);
 
-        // PASO 2: CARGA DEL DOCUMENTO PDF
-        // PDF.js crea una tarea asíncrona para procesar el PDF
-        // getDocument() retorna una Promise que se resuelve con el objeto PDF
+        // STEP 2: PDF DOCUMENT LOADING
+        // PDF.js creates an asynchronous task to process the PDF
+        // getDocument() returns a Promise that resolves with the PDF object
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
         const pdf = await loadingTask.promise;
 
         console.log('PDF cargado, total páginas:', pdf.numPages);
 
-        // PASO 3: OBTENCIÓN DE LA PRIMERA PÁGINA
-        // Los PDFs pueden tener múltiples páginas, aquí procesamos solo la primera
-        // getPage(1) retorna la página 1 (numeración comienza en 1, no en 0)
+        // STEP 3: GETTING THE FIRST PAGE
+        // PDFs can have multiple pages, here we process only the first one
+        // getPage(1) returns page 1 (numbering starts at 1, not 0)
         const page = await pdf.getPage(1);
 
-        // PASO 4: CONFIGURACIÓN DEL VIEWPORT
-        // El viewport define dimensiones y escala de renderizado
-        // scale: 1 = tamaño original del PDF (sin escalado)
+        // STEP 4: VIEWPORT CONFIGURATION
+        // The viewport defines rendering dimensions and scale
+        // scale: 1 = original PDF size (no scaling)
         const viewport = page.getViewport({ scale: 1 });
 
-        // PASO 5: CREACIÓN DE CANVAS TEMPORAL
-        // Creamos un canvas HTML5 temporal (no visible) para renderizar el PDF
-        // Este canvas existe solo en memoria durante el proceso de conversión
+        // STEP 5: TEMPORARY CANVAS CREATION
+        // Create a temporary (non-visible) HTML5 canvas to render the PDF
+        // This canvas exists only in memory during the conversion process
         const tempCanvas = document.createElement('canvas');
         const tempContext = tempCanvas.getContext('2d');
 
-        // Configurar dimensiones del canvas temporal según el viewport del PDF
+        // Configure the temporary canvas dimensions according to the PDF viewport
         tempCanvas.width = viewport.width;
         tempCanvas.height = viewport.height;
 
-        // PASO 6: RENDERIZADO DEL PDF EN CANVAS TEMPORAL
-        // PDF.js dibuja la página del PDF en el contexto 2D del canvas temporal
-        // Esto convierte el PDF vectorial en un bitmap rasterizado
+        // STEP 6: RENDERING THE PDF ON THE TEMPORARY CANVAS
+        // PDF.js draws the PDF page onto the temporary canvas's 2D context
+        // This converts the vectorial PDF into a rasterized bitmap
         await page.render({
             canvasContext: tempContext,
             viewport: viewport
@@ -171,65 +172,65 @@ async function loadPdfAsImage() {
 
         console.log('PDF renderizado en canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
 
-        // PASO 7: CONVERSIÓN DE CANVAS A IMAGEN HTML
-        // Crear un elemento <img> nativo del navegador
+        // STEP 7: CANVAS CONVERSION TO HTML IMAGE
+        // Create a native browser <img> element
         const pdfImage = new Image();
 
-        // PASO 8: CALLBACK CUANDO LA IMAGEN ESTÁ LISTA
-        // Este callback se ejecuta cuando la imagen se carga completamente
+        // STEP 8: CALLBACK WHEN THE IMAGE IS READY
+        // This callback executes when the image is fully loaded
         pdfImage.onload = function() {
             console.log('Imagen del PDF lista para KonvaJS');
 
-            // AJUSTAR DIMENSIONES DEL STAGE
-            // El stage de KonvaJS debe tener las mismas dimensiones que la imagen del PDF
-            // para que el contenido se vea correctamente
+            // ADJUST STAGE DIMENSIONS
+            // The KonvaJS stage must have the same dimensions as the PDF image
+            // so that the content displays correctly
             stage.width(pdfImage.width);
             stage.height(pdfImage.height);
 
-            // PASO 9: CREACIÓN DEL NODO KONVA.IMAGE
-            // Convertir la imagen HTML en un nodo manipulable de KonvaJS
+            // STEP 9: KONVA.IMAGE NODE CREATION
+            // Convert the HTML image into a manipulable KonvaJS node
             const konvaPdfImage = new Konva.Image({
-                x: 0,              // Posición X (esquina superior izquierda)
-                y: 0,              // Posición Y (esquina superior izquierda)
-                image: pdfImage,   // Imagen HTML nativa como fuente
-                listening: false,  // No responde a eventos (es solo fondo)
-                name: 'pdf-background' // Nombre para identificación
+                x: 0,
+                y: 0,
+                image: pdfImage,
+                listening: false,
+                name: 'pdf-background'
             });
 
-            // PASO 10: INTEGRACIÓN EN LA ESCENA KONVAJS
-            // Agregar el PDF como imagen de fondo en la capa
+            // STEP 10: INTEGRATION INTO THE KONVAJS SCENE
+            // Add the PDF as a background image to the layer
             layer.add(konvaPdfImage);
 
-            // Asegurar que el PDF esté siempre al fondo (z-index más bajo)
+            // Ensure the PDF is always in the background (lowest z-index)
             konvaPdfImage.moveToBottom();
 
-            // PASO 11: REDIBUJAR LA ESCENA
-            // Forzar el renderizado de todos los elementos en la capa
+            // STEP 11: REDRAW THE SCENE
+            // Force the rendering of all elements on the layer
             layer.draw();
 
             console.log('PDF integrado exitosamente en KonvaJS como imagen');
 
-            // ACTUALIZAR ESTADO EN EL HEADER
+            // UPDATE STATE IN THE HEADER
             const statusIndicator = document.getElementById('pdf-status');
             if (statusIndicator) {
                 statusIndicator.textContent = 'PDF cargado correctamente';
                 statusIndicator.style.color = '#48bb78';
             }
 
-            // EMITIR EVENTO DE PDF CARGADO
-            // Notificar a otros módulos que el PDF está listo para manipulación
+            // EMIT PDF LOADED EVENT
+            // Notify other modules that the PDF is ready for manipulation
             document.dispatchEvent(new CustomEvent('pdfLoaded'));
         };
 
-        // PASO 7 CONTINUACIÓN: ASIGNAR FUENTE DE LA IMAGEN
-        // Convertir el canvas temporal a una URL de datos Base64
-        // Esto dispara automáticamente el evento onload de la imagen
+        // STEP 7 CONTINUED: ASSIGN IMAGE SOURCE
+        // Convert the temporary canvas to a Base64 data URL
+        // This automatically triggers the image's onload event
         pdfImage.src = tempCanvas.toDataURL();
 
     } catch (error) {
-        // MANEJO DE ERRORES
-        // Capturar cualquier error durante el proceso de conversión
-        // Errores comunes: PDF corrupto, memoria insuficiente, red
+        // ERROR HANDLING
+        // Catch any error during the conversion process
+        // Common errors: Corrupt PDF, insufficient memory, network issues
         console.error('Error al convertir PDF a imagen:', error);
 
         const statusIndicator = document.getElementById('pdf-status');
@@ -243,44 +244,39 @@ async function loadPdfAsImage() {
 }
 
 // =============================================================================
-// MÓDULO 2: AGREGACIÓN DE NODOS MANIPULABLES
+// MODULE 2: ADDING MANIPULABLE NODES
 // =============================================================================
 
 /**
- * MÓDULO 2: MANIPULACIÓN VISUAL - AGREGACIÓN DE NODOS
+ * MODULE 2: VISUAL MANIPULATION - NODE ADDITION
  * ===================================================
  *
- * Agrega elementos interactivos sobre el canvas del PDF.
- * Incluye texto editable, imágenes superpuestas y otros elementos gráficos.
- * Todos los elementos se pueden mover, rotar, escalar y eliminar.
+ * Adds interactive elements onto the PDF canvas.
+ * Includes editable text, overlaid images, and other graphical elements.
+ * All elements can be moved, rotated, scaled, and deleted.
  */
 
-/**
- * INICIALIZACIÓN DEL TEXTO DEMO
- * =============================
- * Crea un nodo de texto de ejemplo que demuestra las capacidades de manipulación.
- * Este texto se puede mover, rotar y editar directamente en el canvas.
- */
 
 // =============================================================================
-// MÓDULO 2.5: GESTIÓN DE ELEMENTOS DE TEXTO INTERACTIVOS
+// MODULE 2.5: MANAGEMENT OF INTERACTIVE TEXT ELEMENTS
 // =============================================================================
 
 // =============================================================================
-// MÓDULO 2.5: SISTEMA DE DRAG & DROP DESDE SIDEBAR
+// MODULE 2.5: DRAG & DROP SYSTEM FROM SIDEBAR
 // =============================================================================
 
 /**
- * CONFIGURA EL SISTEMA DE DRAG & DROP PARA ELEMENTOS DEL SIDEBAR
+ * CONFIGURES THE DRAG & DROP SYSTEM FOR SIDEBAR ELEMENTS
  * ============================================================
  *
- * Permite arrastrar elementos desde el panel lateral directamente al canvas.
- * Funcionalidades:
- * - Arrastrar elementos visuales (texto/imagen) desde el sidebar
- * - Soltar en el canvas para crear elementos interactivos
- * - Auto-apertura del selector de archivos para imágenes
- * - Feedback visual durante el arrastre
+ * Allows elements to be dragged directly from the side panel onto the canvas.
+ * Functionalities:
+ * - Drag visual elements (text/image) from the sidebar
+ * - Drop them onto the canvas to create interactive elements
+ * - Auto-opens the file selector for images
+ * - Provides visual feedback during the drag operation
  */
+
 function setupDragDrop() {
     console.log('Configurando sistema de drag & drop...');
 
@@ -353,7 +349,7 @@ function setupDragDrop() {
 
         if (draggedType === 'text-element') {
             // CREAR ELEMENTO DE TEXTO
-            const defaultText = 'Nuevo texto';
+            const defaultText = 'add text...';
             createDraggableText(defaultText, x, y);
             textCounter++;
 
