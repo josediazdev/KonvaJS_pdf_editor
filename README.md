@@ -15,6 +15,11 @@ A cutting-edge web application for uploading, viewing, and annotating PDF docume
 - **Password Reset**: Secure password recovery with tokenized links
 - **Session Management**: Manual logout and Laravel session handling
 
+### 👤 **User Profile Management**
+- **Profile Editing**: Update email address with current password verification
+- **Password Change**: Secure password update with confirmation
+- **Account Deletion**: Permanently delete user account and all associated data
+
 ### 📄 **PDF Management**
 - **PDF Upload**: Click-to-upload functionality
 - **PDF Viewing**: Integrated PDF.js for high-quality document rendering
@@ -115,8 +120,9 @@ A cutting-edge web application for uploading, viewing, and annotating PDF docume
 ### For Users
 1. **Register/Login**: Create an account with email verification
 2. **Upload PDF**: Use the "Upload New PDF" button to select a file
-3. **Annotate**: Use drawing tools to add notes or images
-4. **Save/Export**: Download the edited PDF with your annotations
+3. **Manage Profile**: Access the Profile section to update your email, change password, or delete your account
+4. **Annotate**: Use drawing tools to add notes or images
+5. **Save/Export**: Download the edited PDF with your annotations
 
 ### For Developers
 - **Routes**: Check `routes/web.php` for available endpoints
@@ -151,6 +157,7 @@ pdf-editor/
 ├── app/
 │   ├── Http/Controllers/
 │   │   ├── Auth/          # Authentication controllers
+│   │   ├── ProfileController.php  # User profile management
 │   │   └── PdfEditController.php
 │   ├── Mail/             # Email classes
 │   └── Models/           # Eloquent models
