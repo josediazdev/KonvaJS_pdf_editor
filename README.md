@@ -40,6 +40,9 @@ A cutting-edge web application for uploading, viewing, and annotating PDF docume
 - **File Upload Security**: Restricted file types and size limits
 - **Optimized Assets**: Vite bundling for fast loading
 
+### 🔧 **Admin Panel**
+- **FilamentV3 Integration**: Powerful admin interface for managing users
+
 ## 🛠️ Tech Stack
 
 ### Backend
@@ -58,6 +61,7 @@ A cutting-edge web application for uploading, viewing, and annotating PDF docume
 - **Mailtrap/SMTP**: Email service for notifications
 - **Font Awesome/Bootstrap Icons**: Icon library
 - **SCSS**: Custom styling with CSS variables
+- **FilamentV3**: Laravel admin panel package
 
 ## 🚀 Quick Start
 
@@ -191,5 +195,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Bootstrap](https://getbootstrap.com) - CSS framework
 - [Konva.js](https://konvajs.org) - Canvas library
 - [PDF.js](https://mozilla.github.io/pdf.js/) - PDF rendering
+- [Filament](https://filamentphp.com) - Admin panel for Laravel
 
 **Made with ❤️ for seamless PDF editing experiences**
