@@ -68,4 +68,21 @@
         </footer>
     </div>
 </div>
+
+<script>
+    document.getElementById('pdf_upload').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            document.getElementById('file-name-display').textContent = file.name;
+            // Animación simple: cambiar estilo temporalmente
+            const display = document.getElementById('file-name-display');
+            display.style.opacity = '0';
+            setTimeout(() => {
+                display.style.transition = 'opacity 0.5s';
+                display.style.opacity = '1';
+            }, 100);
+        }
+    });
+</script>
+
 @endsection

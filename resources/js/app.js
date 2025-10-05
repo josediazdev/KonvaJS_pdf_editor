@@ -76,9 +76,8 @@ function fitStageIntoParentContainer() {
 
 /// EVENT SYSTEM FOR COORDINATION
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado, inicializando sistema...');
+    console.log('DOM loaded, initialize system...');
 
-    const container = document.getElementById('konva-holder');
 
     // Create stage with virtual size initially
     stage = new Konva.Stage({
@@ -96,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add resize listener
     window.addEventListener('resize', fitStageIntoParentContainer);
 
-    console.log('ancho', stage.width());
-    console.log('alto', stage.height());
+    console.log('width', stage.width());
+    console.log('height', stage.height());
 
 
     // WAIT FOR DEPENDENCIES TO BE AVAILABLE
@@ -118,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // INITIALIZE SYSTEM WHEN EVERYTHING IS READY/
     checkDependencies().then(() => {
-        console.log('Dependencias verificadas, cargando PDF...');
+        console.log('Dependencies verified, loading PDF...');
         loadPdfAsImage();
     });
 
@@ -133,13 +132,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 // INITIALIZE ELEMENTS WHEN THE PDF IS LOADED
 document.addEventListener('pdfLoaded', function() {
-    console.log('PDF cargado exitosamente - listo para edición');
+    console.log('PDF loaded successfully - Ready to edit');
     initializeElements();
 });
 
 // INITIALIZE ELEMENTS WHEN THE PDF IS LOADED
 function initializeElements() {
-    console.log('Iniciando elementos en el canvas...');
+    console.log('Starting elements in cavas...');
     // Initialize elements here
 }
 
@@ -164,17 +163,17 @@ async function loadPdfAsImage() {
     // DEPENDENCY VALIDATION
     // Check that we have the PDF data in Base64
     if (typeof window.pdfBase64Data === 'undefined' || !window.pdfBase64Data) {
-        console.log('No hay datos Base64 del PDF disponibles');
+        console.log('There is no Base64 data available');
         return;
     }
 
     // Verify that PDF.js is globally available/
     if (typeof pdfjsLib === 'undefined') {
-        console.error('PDF.js no está cargado');
+        console.error('PDF.js is not loaded ');
         return;
     }
 
-    console.log('Convirtiendo PDF a imagen para KonvaJS...');
+    console.log('Converting PDF to image for KonvaJS...');
 
     try {
         // STEP 1: BASE64 DECODING
@@ -188,7 +187,7 @@ async function loadPdfAsImage() {
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
         const pdf = await loadingTask.promise;
 
-        console.log('PDF cargado, total páginas:', pdf.numPages);
+        console.log('PDF loaded, total pages:', pdf.numPages);
 
         // STEP 3: GETTING THE FIRST PAGE
         // PDFs can have multiple pages, here we process only the first one
@@ -218,7 +217,7 @@ async function loadPdfAsImage() {
             viewport: viewport
         }).promise;
 
-        console.log('PDF renderizado en canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
+        console.log('PDF rendered in temporary canvas:', tempCanvas.width, 'x', tempCanvas.height);
 
         // STEP 7: CANVAS CONVERSION TO HTML IMAGE
         // Create a native browser <img> element
@@ -227,7 +226,7 @@ async function loadPdfAsImage() {
         // STEP 8: CALLBACK WHEN THE IMAGE IS READY
         // This callback executes when the image is fully loaded
         pdfImage.onload = function() {
-            console.log('Imagen del PDF lista para KonvaJS');
+            console.log('PDF image ready to KonvaJS');
 
             // SCALE PDF IMAGE TO FIT VIRTUAL SIZE
             const scaleX = VIRTUAL_WIDTH / pdfImage.width;
@@ -257,7 +256,7 @@ async function loadPdfAsImage() {
             // Force the rendering of all elements on the layer
             layer.draw();
 
-            console.log('PDF integrado exitosamente en KonvaJS como imagen');
+            console.log('PDF integrated successfully into KonvaJS as an image');
 
             // UPDATE STATE IN THE HEADER
             const statusIndicator = document.getElementById('pdf-status');
@@ -280,15 +279,15 @@ async function loadPdfAsImage() {
         // ERROR HANDLING
         // Catch any error during the conversion process
         // Common errors: Corrupt PDF, insufficient memory, network issues
-        console.error('Error al convertir PDF a imagen:', error);
+        console.error('Error converting PDF to image:', error);
 
         const statusIndicator = document.getElementById('pdf-status');
         if (statusIndicator) {
-            statusIndicator.textContent = 'Error al cargar PDF';
+            statusIndicator.textContent = 'Error loading PDF';
             statusIndicator.style.color = '#e53e3e';
         }
 
-        alert('Error al cargar el PDF. Por favor, intenta con otro archivo.');
+        alert('Error loading PDF, please try with other file.');
     }
 }
 
@@ -327,186 +326,184 @@ async function loadPdfAsImage() {
  */
 
 function setupDragDrop() {
-    console.log('Configurando sistema de drag & drop...');
+    console.log('Setting up the drag & drop system...');
 
-    // CONTADORES PARA ELEMENTOS ÚNICOS
+    // COUNTERS FOR UNIQUE ELEMENTS
     let textCounter = 0;
     let imageCounter = 0;
 
-    // OBTENER ELEMENTOS ARRASTRABLES
+    // GET DRAGGABLE ELEMENTS
     const textDraggable = document.querySelector('.text-draggable');
     const imageDraggable = document.querySelector('.image-draggable');
     const imageInput = document.getElementById('image-input');
     const imageStatus = document.getElementById('image-status');
 
     if (!textDraggable || !imageDraggable) {
-        console.error('Elementos arrastrables no encontrados');
+        console.error('Draggable elements not found');
         return;
     }
 
-    // CONFIGURAR EVENTOS PARA ELEMENTO DE TEXTO
+    // SET UP EVENTS FOR TEXT ELEMENTS
     textDraggable.addEventListener('dragstart', function(e) {
         e.dataTransfer.setData('text/plain', 'text-element');
         e.dataTransfer.effectAllowed = 'copy';
         this.classList.add('dragging');
-        console.log('Iniciando arrastre de elemento texto');
+        console.log('Starting draggable of text element');
     });
 
     textDraggable.addEventListener('dragend', function(e) {
         this.classList.remove('dragging');
-        console.log('Finalizando arrastre de elemento texto');
+        console.log('Ending draggable of text element');
     });
 
-    // CONFIGURAR EVENTOS PARA ELEMENTO DE IMAGEN
+    // SET UP EVENTS FOR IMAGE ELEMENTS
     imageDraggable.addEventListener('dragstart', function(e) {
         e.dataTransfer.setData('text/plain', 'image-element');
         e.dataTransfer.effectAllowed = 'copy';
         this.classList.add('dragging');
-        console.log('Iniciando arrastre de elemento imagen');
+        console.log('Starting draggable of image element');
     });
 
     imageDraggable.addEventListener('dragend', function(e) {
         this.classList.remove('dragging');
-        console.log('Finalizando arrastre de elemento imagen');
+        console.log('Ending draggable of image element');
     });
 
-    // CONFIGURAR EVENTOS EN EL STAGE DE KONVAJS
+    // SET UP EVENTS IN THE KONVAJS STAGE
     const stageContainer = stage.container();
 
-    // PREVENIR COMPORTAMIENTO POR DEFECTO
+    // PREVENT DEFAULT BEHAVIOR
     stageContainer.addEventListener('dragover', function(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
     });
 
-    // MANEJAR LA CAÍDA DE ELEMENTOS
+    // MANAGE ELEMENTS DROP
     stageContainer.addEventListener('drop', function(e) {
         e.preventDefault();
 
         const draggedType = e.dataTransfer.getData('text/plain');
-        console.log('Elemento soltado:', draggedType);
+        console.log('Element dropped:', draggedType);
 
         if (!draggedType) return;
 
-        // CALCULAR POSICIÓN RELATIVA AL CANVAS
+        // CALCULATE RELATIVE POSITION TO CANVAS
         const stageBox = stageContainer.getBoundingClientRect();
         const scale = stage.scaleX(); // Considerar zoom si existe
         const x = (e.clientX - stageBox.left) / scale;
         const y = (e.clientY - stageBox.top) / scale;
 
-        console.log(`Posición de caída: (${x.toFixed(0)}, ${y.toFixed(0)})`);
+        console.log(`DROP POSITION: (${x.toFixed(0)}, ${y.toFixed(0)})`);
 
         if (draggedType === 'text-element') {
-            // CREAR ELEMENTO DE TEXTO
+            // CREATE TEXT ELEMENT
             const defaultText = 'add text...';
             createDraggableText(defaultText, x, y);
             textCounter++;
 
-            console.log(`Texto creado por drag & drop: "${defaultText}" en (${x.toFixed(0)}, ${y.toFixed(0)})`);
+            console.log(`Text created by drag and drop: "${defaultText}" on (${x.toFixed(0)}, ${y.toFixed(0)})`);
 
         } else if (draggedType === 'image-element') {
-            // ABRIR SELECTOR DE ARCHIVOS INMEDIATAMENTE AL SOLTAR
+            // OPEN FILE SELECTOR AFTER DROP
             if (imageInput) {
-                imageStatus.textContent = '📂 Selecciona una imagen...';
+                imageStatus.textContent = '📂 Select an image...';
                 imageStatus.style.color = '#fd7e14';
 
-                // Abrir selector de archivos
                 imageInput.click();
-                console.log('Abriendo selector de archivos para imagen');
+                console.log('Opening file selector to image');
             } else {
-                console.error('Input de imagen no encontrado');
+                console.error('Image not found');
             }
         }
     });
 
-    // CONFIGURAR EVENT LISTENER PARA IMAGEN (CUANDO SE SELECCIONA ARCHIVO)
+    // SET UP EVENT LISTENER TO IMAGE (WHEN FILE IS SELECTED)
     if (imageInput && imageStatus) {
         imageInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
 
             if (!file) {
-                // Usuario canceló la selección
+                // User caceled selection
                 imageStatus.textContent = '';
-                // Resetear el input para que pueda volver a abrirse
+                // Reset input to reopen
                 imageInput.value = '';
-                console.log('Selección de imagen cancelada');
+                console.log('Image selection canceled');
                 return;
             }
 
-            // VALIDAR TIPO DE ARCHIVO
+            // VALIDATE FILE TYPE
             if (!file.type.startsWith('image/')) {
-                imageStatus.textContent = '⚠️ Solo se permiten imágenes';
+                imageStatus.textContent = '⚠️ Only images allow';
                 // Resetear el input para futuras selecciones
                 imageInput.value = '';
-                alert('Por favor selecciona un archivo de imagen válido');
+                alert('Please select an image file');
                 return;
             }
 
-            // VALIDAR TAMAÑO (máximo 5MB)
+            // VALIDATE SIZE (máximo 5MB)
             const maxSize = 5 * 1024 * 1024; // 5MB
             if (file.size > maxSize) {
-                imageStatus.textContent = '⚠️ Imagen demasiado grande (máx. 5MB)';
-                // Resetear el input para futuras selecciones
+                imageStatus.textContent = '⚠️ Image too large (máx. 5MB)';
+                // Reset input for future selections
                 imageInput.value = '';
-                alert('La imagen es demasiado grande. Máximo 5MB permitido.');
+                alert('The image is too large. Max 5MB allowed.');
                 return;
             }
 
-            imageStatus.textContent = '⏳ Procesando imagen...';
+            imageStatus.textContent = '⏳ Processing image...';
 
-            // PROCESAR LA IMAGEN
+            // PROCESS THE IMAGE
             const reader = new FileReader();
             reader.onload = function(e) {
                 const imageUrl = e.target.result;
 
-                // CREAR IMAGEN EN LA POSICIÓN DONDE SE SOLTÓ EL ELEMENTO
-                // Usar una posición por defecto ya que no podemos rastrear la posición exacta de drop para imágenes
+                // Use a deafault position since we can't track the exact drop position for images
                 const defaultX = 200 + (imageCounter * 60);
                 const defaultY = 200 + (imageCounter * 40);
 
                 createDraggableImage(imageUrl, file.name, defaultX, defaultY);
                 imageCounter++;
-                imageStatus.textContent = '✅ Imagen agregada: ' + file.name;
-                // Resetear el input para futuras selecciones
+                imageStatus.textContent = '✅ Image added: ' + file.name;
+                // Reset the input for future selections
                 imageInput.value = '';
                 setTimeout(() => {
                     imageStatus.textContent = '';
                 }, 3000);
 
-                console.log(`Imagen creada por drag & drop: "${file.name}" en (${defaultX}, ${defaultY})`);
+                console.log(`Image created by drag and drop: "${file.name}" on (${defaultX}, ${defaultY})`);
             };
 
             reader.onerror = function() {
-                imageStatus.textContent = '❌ Error al cargar imagen';
-                // Resetear el input para futuras selecciones
+                imageStatus.textContent = '❌ Error loading the image';
+                // Reset the input for future selections
                 imageInput.value = '';
-                console.error('Error al leer el archivo de imagen');
+                console.error('Error reading the image file');
             };
 
             reader.readAsDataURL(file);
         });
     }
 
-    console.log('Sistema de drag & drop configurado exitosamente');
+    console.log('Drag and drop system configured successfully');
 }
-
 /**
- * CREA UN ELEMENTO DE TEXTO ARRASTRABLE Y EDITABLE
- * ================================================
+ * CREATES A DRAGGABLE AND EDITABLE TEXT ELEMENT
+ * ============================================
  *
- * @param {string} text - El texto a mostrar
- * @param {number} x - Posición X inicial
- * @param {number} y - Posición Y inicial
+ * @param {string} text - The text to display.
+ * @param {number} x - Initial X position.
+ * @param {number} y - Initial Y position.
  *
- * Características de edición avanzada:
- * - Doble clic abre editor en posición precisa del texto
- * - Control numérico de tamaño de fuente (8-100px)
- * - Textarea redimensionable visualmente
- * - Actualización en tiempo real del tamaño
- * - Mantiene posición y rotación del texto original
+ * Advanced Editing Features:
+ * - Double-click opens the editor at the precise text position.
+ * - Numeric control for font size (8-100px).
+ * - Visually resizable textarea.
+ * - Real-time size update.
+ * - Maintains the original text's position and rotation.
  */
+
 function createDraggableText(text, x = 100, y = 100) {
-    // CREAR NODO DE TEXTO EN KONVAJS
+    // CREATE THE TEXT NODE ON KONVAJS
     const textNode = new Konva.Text({
         text: text,
         x: x,
@@ -514,31 +511,32 @@ function createDraggableText(text, x = 100, y = 100) {
         fontSize: 24,
         fontFamily: 'Arial',
         fill: '#000000',
-        draggable: true,           // HABILITAR ARRASTRE
-        name: 'draggable-text',    // NOMBRE PARA IDENTIFICACIÓN
-        padding: 5,               // ESPACIO INTERNO PARA MEJOR SELECCIÓN
+        draggable: true,
+        name: 'draggable-text',
+        padding: 5,
         align: 'left'
     });
 
     // AGREGAR EFECTOS VISUALES PARA INTERACCIÓN
-    // Al pasar el mouse por encima
+    // ADD VISUAL EFFECTS FOR INTERACTION
+    // when hover
     textNode.on('mouseover', function() {
         document.body.style.cursor = 'move';
         this.fill('#007bff'); // Cambiar color
     });
 
-    // Al quitar el mouse
+    // Take off the cursor
     textNode.on('mouseout', function() {
         document.body.style.cursor = 'default';
-        this.fill('#000000'); // Volver al color original
+        this.fill('#000000');
     });
 
-    // EVENTO: DOBLE CLIC PARA EDITAR TEXTO
+    // EVENT: DOUBLE CLICK TO EDIT TEXT
     textNode.on('dblclick dbltap', function() {
-        // CREAR CONTENEDOR HTML TEMPORAL PARA EDICIÓN
+        // CREATE TEMPORARY HTML CONTAINER FOR EDITION
         const textPosition = this.absolutePosition();
 
-        // Calcular posición más precisa y congruente
+        // Calculate position precisely
         const stageBox = stage.container().getBoundingClientRect();
         const textHeight = this.height() * stage.scaleY();
         const visualY = textPosition.y * stage.scaleY();
@@ -552,36 +550,36 @@ function createDraggableText(text, x = 100, y = 100) {
             y: stageBox.top + yOffset * stage.scaleY() + (spaceBelow > spaceAbove ? 2 : 0),   // Adjust offset
         };
 
-        // Crear contenedor principal para edición con layout horizontal
+        // Create main container for edition with horizontal layout
         const editContainer = document.createElement('div');
         editContainer.style.position = 'fixed'; // Use fixed to ensure viewport-relative positioning
         editContainer.style.left = areaPosition.x + 'px';
         editContainer.style.top = areaPosition.y + 'px';
         editContainer.style.zIndex = '1000';
-        editContainer.style.display = 'flex';        // Layout horizontal
-        editContainer.style.alignItems = 'flex-start'; // Alinear al inicio
-        editContainer.style.gap = '8px';            // Espacio entre elementos
+        editContainer.style.display = 'flex';
+        editContainer.style.alignItems = 'flex-start';
+        editContainer.style.gap = '8px';
         document.body.appendChild(editContainer);
 
-        // Crear textarea para edición de texto
+        // Create textare to edit text
         const textarea = document.createElement('textarea');
         textarea.value = this.text();
         textarea.className = 'text-edit-textarea'; // ← USAR CLASE CSS
 
-        // Solo configurar propiedades dinámicas
+        // Only configure dynamic properties
         const initialTextWidth = Math.max(this.width() - this.padding() * 2, 100);
         textarea.style.width = initialTextWidth + 'px';
         textarea.style.fontSize = this.fontSize() + 'px';
         textarea.style.fontFamily = this.fontFamily();
         textarea.style.textAlign = this.align();
 
-        // Crear control de tamaño (al lado izquierdo, sin etiqueta)
+        // Create size control (left size, without label)
         const sizeControl = document.createElement('div');
         sizeControl.style.display = 'flex';
         sizeControl.style.alignItems = 'center';
         sizeControl.style.justifyContent = 'center';
         sizeControl.style.width = '50px';
-        sizeControl.style.height = '100%'; // Para centrar verticalmente
+        sizeControl.style.height = '100%';
 
         const sizeInput = document.createElement('input');
         sizeInput.type = 'number';
@@ -597,22 +595,22 @@ function createDraggableText(text, x = 100, y = 100) {
 
         sizeControl.appendChild(sizeInput);
 
-        // Agregar elementos al contenedor
+        // Add elements to the container
         editContainer.appendChild(sizeControl);
         editContainer.appendChild(textarea);
 
-        // Rotar el contenedor si el texto está rotado
+        // Rotate the container if text is rotated
         const rotation = this.rotation();
         if (rotation) {
             editContainer.style.transform = 'rotateZ(' + rotation + 'deg)';
             editContainer.style.transformOrigin = 'left top';
         }
 
-        // Seleccionar todo el texto
+        // Select all the text
         textarea.focus();
         textarea.select();
 
-        // FUNCIÓN PARA MEDIR EL ANCHO REAL DEL TEXTO
+        // FUNCTION TO MEASURE THE REAL TEXT WIDTH
         const measureTextWidth = (text, fontSize, fontFamily) => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -620,7 +618,7 @@ function createDraggableText(text, x = 100, y = 100) {
             return ctx.measureText(text).width;
         };
 
-        // FUNCIÓN PARA AUTO-RESIZE HORIZONTAL DEL TEXTAREA
+        // FUNCTION TO AUTO-RESIZE HORIZONTAL TEXTAREA
         const autoResizeTextarea = () => {
             const textWidth = measureTextWidth(textarea.value, this.fontSize(), this.fontFamily());
             const padding = 10; // Padding extra para comodidad
@@ -629,246 +627,249 @@ function createDraggableText(text, x = 100, y = 100) {
             textarea.style.width = newWidth + 'px';
         };
 
-        // Aplicar auto-resize inicialmente
+        // Apply auto-resize when starting
         autoResizeTextarea();
 
-        // FUNCIONES PARA ACTUALIZAR TAMAÑO
+        // FUNCTIONS TO UPDATE SIZE
         const updateFontSize = () => {
             const newSize = parseInt(sizeInput.value);
             if (newSize >= 8 && newSize <= 100) {
                 this.fontSize(newSize);
                 textarea.style.fontSize = newSize + 'px';
                 layer.draw();
-                // Re-aplicar auto-resize con nueva fuente
+                // Re-apply auto-resize with new font
                 setTimeout(autoResizeTextarea, 0);
             }
         };
 
-        // Evento para cambiar tamaño
+        // Event to change size
         sizeInput.addEventListener('input', updateFontSize);
         sizeInput.addEventListener('change', updateFontSize);
 
-        // Evento para auto-resize del textarea mientras se escribe
+        // Event to auto-resize the textarea while writing
         textarea.addEventListener('input', autoResizeTextarea);
 
-        // FUNCIONES PARA FINALIZAR EDICIÓN
+        // FUNCTIONS TO FINALIZE EDITION
         const removeEditContainer = () => {
             document.body.removeChild(editContainer);
             window.removeEventListener('click', handleOutsideClick);
-            this.hide(); // Ocultar texto temporalmente
+            this.hide(); //Hide text temporarily
         };
 
-        // Al presionar Enter o Escape
+        // When press Enter or Escape
         const handleKeyDown = (e) => {
             if (e.keyCode === 13 && !e.shiftKey) { // Enter (sin shift para nueva línea)
                 this.text(textarea.value);
-                updateFontSize(); // Aplicar último cambio de tamaño
+                updateFontSize(); // Apply last size change
                 removeEditContainer();
-                this.show(); // Mostrar texto actualizado
+                this.show(); // Show updated text
             }
             if (e.keyCode === 27) { // Escape
                 removeEditContainer();
-                this.show(); // Mostrar texto sin cambios
+                this.show(); // Show text without changes
             }
         };
 
-        // Al hacer clic fuera del contenedor
+        // When clicking outside the container
         const handleOutsideClick = (e) => {
             if (!editContainer.contains(e.target)) {
                 this.text(textarea.value);
-                updateFontSize(); // Aplicar último cambio de tamaño
+                updateFontSize(); // Apply the last change
                 removeEditContainer();
                 this.show();
             }
         };
 
-        // Configurar event listeners
+        // Configure event listeners
         textarea.addEventListener('keydown', handleKeyDown);
         setTimeout(() => {
             window.addEventListener('click', handleOutsideClick);
         });
 
         // Actualizar tamaño del textarea cuando se redimensiona
+        // Update the size of textarea when is redimentionated
         let resizeObserver;
         if (window.ResizeObserver) {
             resizeObserver = new ResizeObserver(() => {
-                // Aquí podríamos ajustar el tamaño del texto basado en el tamaño del textarea
-                // Por ahora mantenemos el control manual
+                // Here we could adjus the text size base on the testarea size
+                // For now we keep the manual control
             });
             resizeObserver.observe(textarea);
         }
     });
 
-    // EVENTO: PRESIONAR DELETE PARA ELIMINAR
+    // EVENT: PRESS DELETE TO ELIMINATE
     textNode.on('keydown', function(event) {
-        if (event.keyCode === 46 || event.keyCode === 8) { // Delete o Backspace
-            this.destroy(); // Eliminar el elemento
-            layer.draw(); // Redibujar la capa
+        if (event.keyCode === 46 || event.keyCode === 8) { // Delete or Backspace
+            this.destroy(); // Eliminate element
+            layer.draw(); // Re-draw layer
         }
     });
 
-    // HABILITAR ESCUCHA DE EVENTOS DE TECLADO
+    // ENABLE EVENT KEYBOARD LISTENING
     textNode.on('focus', function() {
-        // Cuando el elemento tiene foco, escuchar teclas
+        // When the element has focus, listen keys
         document.addEventListener('keydown', handleKeyDown);
     });
 
     textNode.on('blur', function() {
-        // Cuando pierde foco, dejar de escuchar
+        // Cuando pierde focus, dejar de escuchar
+        // When loss foco, stop listening
         document.removeEventListener('keydown', handleKeyDown);
     });
 
-    // Función auxiliar para manejar teclas
+    // Auxiliar function to manage keys
     const handleKeyDown = (event) => {
-        if (event.keyCode === 46 || event.keyCode === 8) { // Delete o Backspace
+        if (event.keyCode === 46 || event.keyCode === 8) { // Delete or Backspace
             textNode.destroy();
             layer.draw();
             document.removeEventListener('keydown', handleKeyDown);
         }
     };
 
-    // AGREGAR EL TEXTO A LA CAPA Y REDIBUJAR
+    // ADD THE TEXT TO LAYER AND RE-DRAW
     layer.add(textNode);
     layer.draw();
 
-    console.log(`Texto creado: "${text}" en posición (${x}, ${y})`);
+    console.log(`Text created: "${text}" on position (${x}, ${y})`);
 }
-
 // =============================================================================
-// MÓDULO 2.6: GESTIÓN DE ELEMENTOS DE IMAGEN INTERACTIVOS
+// MODULE 2.6: INTERACTIVE IMAGE ELEMENT MANAGEMENT
 // =============================================================================
 
 /**
- * CONFIGURA EL SISTEMA DE CARGA Y MANIPULACIÓN DE IMÁGENES
- * ========================================================
+ * SETS UP THE IMAGE UPLOAD AND MANIPULATION SYSTEM
+ * ================================================
  *
- * Permite subir imágenes desde archivos y crear elementos arrastrables
- * y redimensionables en el canvas.
- * Funcionalidades:
- * - Subir imágenes desde input file
- * - Arrastrar elementos por el canvas
- * - Redimensionar con transformadores visuales
- * - Eliminar elementos con tecla Delete
- * - Posicionamiento automático para evitar solapamiento
+ * Allows users to upload images from local files and creates draggable
+ * and resizable elements on the canvas.
+ * Features:
+ * - Upload images using a file input
+ * - Drag elements across the canvas
+ * - Resize using visual transformers/handles
+ * - Delete elements using the Delete key
+ * - Automatic positioning to prevent overlap
  */
+
 function setupImageControls() {
-    // Obtener referencias a los elementos del DOM
+    // Obtain the references to the other elements on the DOM
     const addImageBtn = document.getElementById('add-image-btn');
     const imageInput = document.getElementById('image-input');
     const imageStatus = document.getElementById('image-status');
 
     if (!addImageBtn || !imageInput || !imageStatus) {
-        console.error('Elementos de control de imagen no encontrados en el DOM');
+        console.error('Control elements of image not found on the DOM');
         return;
     }
 
-    // CONTADOR PARA NOMBRAR ELEMENTOS ÚNICAMENTE
+    // COUNTER TO NAME THE ELEMENTS UNIQUELY
     let imageCounter = 0;
 
-    // EVENT LISTENER: ABRIR SELECCIONADOR DE ARCHIVOS
+    // EVENT LISTENER: OPEN FILE SELECTOR
     addImageBtn.addEventListener('click', function() {
-        imageInput.click(); // Simula clic en input file oculto
+        imageInput.click(); // Simulate click on input file hided
     });
 
-    // EVENT LISTENER: PROCESAR ARCHIVO SELECCIONADO
+    // EVENT LISTENER: PROCESS SELECTED FILE
     imageInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
 
         if (!file) {
-            imageStatus.textContent = 'No se seleccionó archivo';
+            imageStatus.textContent = 'File not selected';
             return;
         }
 
-        // VALIDAR TIPO DE ARCHIVO
+        // VALIDATE FILE TYPE
         if (!file.type.startsWith('image/')) {
-            imageStatus.textContent = '⚠️ Solo se permiten imágenes';
-            alert('Por favor selecciona un archivo de imagen válido');
+            imageStatus.textContent = '⚠️ Only images allowed';
+            alert('Please select an valid image file');
             return;
         }
 
-        // VALIDAR TAMAÑO (máximo 5MB)
+        // VALIDATE SIZE (Max 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
-            imageStatus.textContent = '⚠️ Imagen demasiado grande (máx. 5MB)';
-            alert('La imagen es demasiado grande. Máximo 5MB permitido.');
+            imageStatus.textContent = '⚠️ Image too large (máx. 5MB)';
+            alert('The image is too large. Max 5MB allowed');
             return;
         }
 
-        imageStatus.textContent = '⏳ Procesando imagen...';
+        imageStatus.textContent = '⏳ Proccesing image...';
 
-        // PROCESAR LA IMAGEN
+        // PROCESS THE IMAGE
         const reader = new FileReader();
         reader.onload = function(e) {
             const imageUrl = e.target.result;
             createDraggableImage(imageUrl, file.name, 150 + (imageCounter * 50), 150 + (imageCounter * 30));
             imageCounter++;
-            imageStatus.textContent = '✅ Imagen agregada: ' + file.name;
+            imageStatus.textContent = '✅ Image added: ' + file.name;
             setTimeout(() => {
                 imageStatus.textContent = '';
             }, 3000);
         };
 
         reader.onerror = function() {
-            imageStatus.textContent = '❌ Error al cargar imagen';
-            console.error('Error al leer el archivo de imagen');
+            imageStatus.textContent = '❌ Error loading the image';
+            console.error('Error while reading the image file');
         };
 
         reader.readAsDataURL(file);
     });
 
-    console.log('Sistema de control de imágenes configurado');
+    console.log('Constrol system of images configured');
 }
 
 /**
- * CONFIGURA EL SISTEMA DE INTERACCIÓN GLOBAL DEL CANVAS
- * ===================================================
+ * SETS UP THE GLOBAL CANVAS INTERACTION SYSTEM
+ * ===========================================
  *
- * Maneja eventos globales como clics en áreas vacías para
- * desactivar modos de edición de elementos interactivos.
+ * Handles global events, such as clicks on empty areas, to
+ * deactivate the editing modes of interactive elements.
  */
+
 function setupCanvasInteraction() {
-    // EVENTO: CLIC EN ÁREAS VACÍAS DESACTIVA TODOS LOS TRANSFORMADORES
+    // EVENT: CLICK ON SEVERAL VOID AREAS DEACTIVATE ALL THE TRANSFORMERS
     stage.on('click tap', function(e) {
-        // Si el clic fue en una imagen, no hacer nada (dejar que el evento de la imagen se maneje)
+        // If the click was on an image, do not do anything (let the event manage itself)
         if (e.target !== stage && e.target.name() !== 'pdf-background') {
-            // El clic fue en un elemento (como una imagen), no hacer nada
+            // The click was on an element (like an image), do not do anything
             return;
         }
 
-        // El clic fue en el stage o en el fondo (área vacía)
-        // REMOVER TODOS LOS TRANSFORMADORES ACTIVOS
+        // The click was on the stage or the background (void area)
+        // REMOVE ALL THE ACTIVE TRANSFORMERS
         layer.find('Transformer').forEach(transformer => {
             transformer.destroy();
         });
         layer.draw();
 
-        console.log('Modo edición desactivado - transformers removidos');
+        console.log('Edition mode deactivated - transformers removed');
     });
 
-    console.log('Sistema de interacción global del canvas configurado');
+    console.log('Interaction global system of canvas configured');
 }
-
 /**
- * CREA UN ELEMENTO DE IMAGEN ARRASTRABLE Y REDIMENSIONABLE
- * =======================================================
+ * CREATES A DRAGGABLE AND RESIZABLE IMAGE ELEMENT
+ * ===============================================
  *
- * @param {string} imageUrl - URL de datos de la imagen (base64)
- * @param {string} fileName - Nombre original del archivo
- * @param {number} x - Posición X inicial
- * @param {number} y - Posición Y inicial
+ * @param {string} imageUrl - Image data URL (base64)
+ * @param {string} fileName - Original file name
+ * @param {number} x - Initial X position
+ * @param {number} y - Initial Y position
  */
+
 function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
-    // CREAR ELEMENTO HTML IMAGE PARA MEDIR DIMENSIONES
+    // CREATE HTML ELEMENT IMAGE TO MEASURE DIMENTIONS
     const img = new Image();
 
     img.onload = function() {
-        // CALCULAR DIMENSIONES MÁXIMAS PARA EVITAR IMÁGENES DEMASIADO GRANDES
+        // CALCULATE MAX DIMENTIONS TO AVOID IMAGES TOO LARGE
         const maxWidth = 400;
         const maxHeight = 300;
         let width = img.width;
         let height = img.height;
 
-        // ESCALAR SI ES NECESARIO
+        // SCALE IF NECESSARY
         if (width > maxWidth) {
             height = (height * maxWidth) / width;
             width = maxWidth;
@@ -878,7 +879,7 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
             height = maxHeight;
         }
 
-        // CREAR NODO DE IMAGEN EN KONVAJS
+        // CREATE IMAGE NODE ON KONVAJS
         const imageNode = new Konva.Image({
             x: x,
             y: y,
@@ -890,17 +891,17 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
             id: 'image-' + Date.now() // ID único
         });
 
-        // AGREGAR EFECTOS VISUALES PARA INTERACCIÓN
-        // Al pasar el mouse por encima
+        // ADD VISUAL EFFECTS FOR THE INTERACTION
+        // While hover
         imageNode.on('mouseover', function() {
             document.body.style.cursor = 'move';
-            // Agregar borde sutil
+            // Add soft border
             this.stroke('#007bff');
             this.strokeWidth(2);
             layer.draw();
         });
 
-        // Al quitar el mouse
+        // When taking off the cursor
         imageNode.on('mouseout', function() {
             document.body.style.cursor = 'default';
             this.stroke(null);
@@ -908,12 +909,12 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
             layer.draw();
         });
 
-        // EVENTO: DOBLE CLIC PARA ACTIVAR TRANSFORMADOR
+        // EVENT: DOUBLE CLICK TO ACTIVATE TRANSFORMER
         imageNode.on('dblclick dbltap', function() {
-            // REMOVER TRANSFORMADORES EXISTENTES
+            // REMOVE EXISTING TRANSFORMERS
             layer.find('Transformer').forEach(transformer => transformer.destroy());
 
-            // CREAR NUEVO TRANSFORMADOR PARA ESTA IMAGEN
+            // CREATE NEW TRANSFORMER FOR THIS IMAGE
             const transformer = new Konva.Transformer({
                 node: imageNode,
                 enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center'],
@@ -930,23 +931,23 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
             layer.add(transformer);
             layer.draw();
 
-            // GUARDAR REFERENCIA AL TRANSFORMADOR
+            // SAVE REFERENCE WHEN TRANSFORMING
             imageNode.transformer = transformer;
         });
 
-        // EVENTO: PRESIONAR DELETE PARA ELIMINAR
+        // EVENT: PRESS DELETE TO ELIMINATE
         imageNode.on('keydown', function(event) {
             if (event.keyCode === 46 || event.keyCode === 8) { // Delete o Backspace
-                // Remover transformador si existe
+                // Remove transformer if exists
                 if (this.transformer) {
                     this.transformer.destroy();
                 }
-                this.destroy(); // Eliminar la imagen
-                layer.draw(); // Redibujar la capa
+                this.destroy(); // Eliminate the image
+                layer.draw(); // Re-draw the layer
             }
         });
 
-        // HABILITAR ESCUCHA DE EVENTOS DE TECLADO
+        // ENABLE KEYBOARD EVENTS LISTENING
         imageNode.on('focus', function() {
             document.addEventListener('keydown', handleKeyDown);
         });
@@ -955,9 +956,9 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
             document.removeEventListener('keydown', handleKeyDown);
         });
 
-        // Función auxiliar para manejar teclas
+        // Auxiliar function to manage keys
         const handleKeyDown = (event) => {
-            if (event.keyCode === 46 || event.keyCode === 8) { // Delete o Backspace
+            if (event.keyCode === 46 || event.keyCode === 8) { // Delete or Backspace
                 if (imageNode.transformer) {
                     imageNode.transformer.destroy();
                 }
@@ -967,25 +968,25 @@ function createDraggableImage(imageUrl, fileName, x = 150, y = 150) {
             }
         };
 
-        // EVENTO: AL TERMINAR DE ARRASTRAR, REMOVER TRANSFORMADOR SI NO ESTÁ SELECCIONADO
+        // EVENT: WHEN FINISH DRAGGING, REMOVE THE TRANSFORMER IF IS NOT SELECTED
         imageNode.on('dragend', function() {
-            // Opcional: remover transformador al terminar de arrastrar
-            // Por ahora lo mantenemos para que el usuario pueda seguir redimensionando
+            // Optional: remove transformer when finish dragging
+            // For now we keep it, so the user can keep redimentionating
         });
 
-        // AGREGAR LA IMAGEN A LA CAPA Y REDIBUJAR
+        // ADD THE IMAGE TO THE LAYER AND RE-DRAW
         layer.add(imageNode);
         layer.draw();
 
-        console.log(`Imagen creada: "${fileName}" (${width}x${height}px) en posición (${x}, ${y})`);
+        console.log(`Image created: "${fileName}" (${width}x${height}px) on position (${x}, ${y})`);
     };
 
     img.onerror = function() {
-        console.error('Error al cargar la imagen:', fileName);
-        alert('Error al cargar la imagen. Intenta con otro archivo.');
+        console.error('Error while loading the image:', fileName);
+        alert('Error while loading the image. Try with other file.');
     };
 
-    // ESTABLECER LA FUENTE DE LA IMAGEN
+    // ESTABLISH THE IMAGE SOURCE
     img.src = imageUrl;
 }
 
@@ -1016,19 +1017,19 @@ function setupPdfExport() {
     const saveButton = document.getElementById('save-pdf-btn');
 
     if (!saveButton) {
-        console.error('Botón de guardar PDF no encontrado en el DOM');
+        console.error('Save button PDF not found on the DOM');
         return;
     }
 
     // CONFIGURE EVENT LISTENER FOR EXPORT
     saveButton.addEventListener('click', function (event) {
-        event.preventDefault(); // Prevenir cualquier comportamiento por defecto
-        console.log('Iniciando exportación a PDF...');
+        event.preventDefault();
+        console.log('Initialize PDF exportation...');
 
         // DEPENDENCY VALIDATION
         if (typeof jsPDF === 'undefined') {
-            console.error('jsPDF no está cargado');
-            alert('Error: jsPDF library no está disponible');
+            console.error('jsPDF is not loaded');
+            alert('Error: jsPDF library is not available');
             return;
         }
 
@@ -1078,7 +1079,7 @@ function setupPdfExport() {
 
             // STEP 2.5: EXPORT IMAGES SEPARATELY
             // Images also require individual processing to preserve rotation and scaling
-            console.log('Exportando imágenes...');
+            console.log('Exporting images...');
 
             // stage.find('Image') finds all Konva.Image type nodes in the scene
             // We exclude the PDF background image (which has name: 'pdf-background')
@@ -1142,22 +1143,23 @@ function setupPdfExport() {
                             });
                         }
 
-                        console.log(`Imagen exportada: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}px en (${x.toFixed(0)}, ${y.toFixed(0)})`);
+                        console.log(`Image exported: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}px on (${x.toFixed(0)}, ${y.toFixed(0)})`);
                     }
                 } catch (imageError) {
-                    console.warn('Error al procesar imagen individual:', imageError);
+                    console.warn('Error while processing the individual image:', imageError);
                     // Continue with other images
                 }
             });
 
             // STEP 3: EXPORT COMPLETE SCENE AS IMAGE
-            console.log('Exportando escena como imagen...');
+            console.log('Exporting stage as an image...');
+
 
             // stage.toDataURL() converts the entire KonvaJS canvas to a Base64 image
             // pixelRatio: 2 doubles the resolution for retina/high-density displays
             const canvasDataURL = stage.toDataURL({
                 pixelRatio: 2,
-                mimeType: 'image/png'  // Formato PNG por defecto
+                mimeType: 'image/png'  // PNG format by default
             });
 
             const DPI_FACTOR = 1.3333;
@@ -1177,13 +1179,13 @@ function setupPdfExport() {
             // Show save file dialog to the user
             pdf.save('canvas.pdf');
 
-            console.log('PDF exportado exitosamente');
+            console.log('PDF exported successfully');
 
         } catch (error) {
-            console.error('Error durante la exportación a PDF:', error);
-            alert('Error al exportar PDF: ' + error.message);
+            console.error('Error while the PDF exportation:', error);
+            alert('Error when exporting PDF: ' + error.message);
         }
     });
 
-    console.log('Sistema de exportación a PDF configurado');
+    console.log('PDF exportation system configured');
 }
