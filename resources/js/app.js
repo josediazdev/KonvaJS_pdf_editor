@@ -37,24 +37,68 @@
  * ===================================
  * Initializes KonvaJS, sets up the stage and layer, and coordinates module loading.
  */
-
 // INITIALIZE MAIN STAGE AND LAYER
 // Stage: The main container for the KonvaJS canvas.
 // Layer: The layer where all graphical elements are drawn.
 
 
-const stage = new Konva.Stage({
-    height: window.innerHeight,
-    width: window.innerWidth,
-    container: "konva-holder",
-});
+// Define virtual size for our scene (PDF dimensions)
+const VIRTUAL_WIDTH = 918;
+const VIRTUAL_HEIGHT = 1184;
 
-const layer = new Konva.Layer();
-stage.add(layer);
+// Initialize stage variable
+let stage;
+let layer;
+
+// Function to fit stage into parent container
+function fitStageIntoParentContainer() {
+    const container = document.getElementById('konva-holder');
+    if (!container || !stage) return;
+
+    // Get container's computed size (respects max-width/height)
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+
+    // Calculate scale based on virtual size
+    const scaleX = containerWidth / VIRTUAL_WIDTH;
+    const scaleY = containerHeight / VIRTUAL_HEIGHT;
+    const scale = Math.min(scaleX, scaleY); // Use the smaller scale to fit
+
+    // Set stage dimensions to container size
+    stage.width(containerWidth);
+    stage.height(containerHeight);
+
+    // Apply scale
+    stage.scale({ x: scale, y: scale });
+
+    console.log(`Stage resized: ${containerWidth}x${containerHeight}, scale: ${scale}`);
+}
 
 /// EVENT SYSTEM FOR COORDINATION
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM cargado, inicializando sistema...');
+
+    const container = document.getElementById('konva-holder');
+
+    // Create stage with virtual size initially
+    stage = new Konva.Stage({
+        container: 'konva-holder',
+        width: VIRTUAL_WIDTH,
+        height: VIRTUAL_HEIGHT,
+    });
+
+    layer = new Konva.Layer();
+    stage.add(layer);
+
+    // Fit stage to container after creation
+    fitStageIntoParentContainer();
+
+    // Add resize listener
+    window.addEventListener('resize', fitStageIntoParentContainer);
+
+    console.log('ancho', stage.width());
+    console.log('alto', stage.height());
+
 
     // WAIT FOR DEPENDENCIES TO BE AVAILABLE
     // Use a Promise to wait for pdfBase64Data to be available/
@@ -87,13 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // CONFIGURE GLOBAL INTERACTION ON CANVAS
     setupCanvasInteraction();
 });
-
 // INITIALIZE ELEMENTS WHEN THE PDF IS LOADED
 document.addEventListener('pdfLoaded', function() {
     console.log('PDF cargado exitosamente - listo para edición');
+    initializeElements();
 });
 
-
+// INITIALIZE ELEMENTS WHEN THE PDF IS LOADED
+function initializeElements() {
+    console.log('Iniciando elementos en el canvas...');
+    // Initialize elements here
+}
 
  // =============================================================================
 // MODULE 1: LOADING THE PDF AS AN IMAGE IN KONVAJS
@@ -150,7 +198,7 @@ async function loadPdfAsImage() {
         // STEP 4: VIEWPORT CONFIGURATION
         // The viewport defines rendering dimensions and scale
         // scale: 1 = original PDF size (no scaling)
-        const viewport = page.getViewport({ scale: 1 });
+        const viewport = page.getViewport({ scale: 2 });
 
         // STEP 5: TEMPORARY CANVAS CREATION
         // Create a temporary (non-visible) HTML5 canvas to render the PDF
@@ -181,11 +229,10 @@ async function loadPdfAsImage() {
         pdfImage.onload = function() {
             console.log('Imagen del PDF lista para KonvaJS');
 
-            // ADJUST STAGE DIMENSIONS
-            // The KonvaJS stage must have the same dimensions as the PDF image
-            // so that the content displays correctly
-            stage.width(pdfImage.width);
-            stage.height(pdfImage.height);
+            // SCALE PDF IMAGE TO FIT VIRTUAL SIZE
+            const scaleX = VIRTUAL_WIDTH / pdfImage.width;
+            const scaleY = VIRTUAL_HEIGHT / pdfImage.height;
+            const scale = Math.min(scaleX, scaleY); // Fit to virtual size
 
             // STEP 9: KONVA.IMAGE NODE CREATION
             // Convert the HTML image into a manipulable KonvaJS node
@@ -193,6 +240,8 @@ async function loadPdfAsImage() {
                 x: 0,
                 y: 0,
                 image: pdfImage,
+                width: pdfImage.width * scale, // Scale dimensions
+                height: pdfImage.height * scale,
                 listening: false,
                 name: 'pdf-background'
             });
@@ -491,14 +540,21 @@ function createDraggableText(text, x = 100, y = 100) {
 
         // Calcular posición más precisa y congruente
         const stageBox = stage.container().getBoundingClientRect();
+        const textHeight = this.height() * stage.scaleY();
+        const visualY = textPosition.y * stage.scaleY();
+        const spaceBelow = stageBox.height - (visualY + textHeight);
+        const spaceAbove = visualY;
+
+        // Place below if there's more space below, else above
+        const yOffset = spaceBelow > spaceAbove ? textPosition.y + this.height() : textPosition.y;
         const areaPosition = {
-            x: stageBox.left + textPosition.x - 10, // Pequeño offset para mejor alineación
-            y: stageBox.top + textPosition.y - 5,   // Pequeño offset para mejor alineación
+            x: stageBox.left + textPosition.x * stage.scaleX() - 10, // Scale position
+            y: stageBox.top + yOffset * stage.scaleY() + (spaceBelow > spaceAbove ? 2 : 0),   // Adjust offset
         };
 
         // Crear contenedor principal para edición con layout horizontal
         const editContainer = document.createElement('div');
-        editContainer.style.position = 'absolute';
+        editContainer.style.position = 'fixed'; // Use fixed to ensure viewport-relative positioning
         editContainer.style.left = areaPosition.x + 'px';
         editContainer.style.top = areaPosition.y + 'px';
         editContainer.style.zIndex = '1000';
@@ -980,7 +1036,10 @@ function setupPdfExport() {
             // STEP 1: JSPDF INITIALIZATION
             // Create PDF document with landscape orientation ('l'), units in pixels ('px')
             // Dimensions based on the KonvaJS stage
-            const pdf = new jsPDF('l', 'px', [stage.width(), stage.height()]);
+
+            const pageOrientation = stage.width() > stage.height() ? 'l' : 'p';
+
+            const pdf = new jsPDF(pageOrientation, 'px', [stage.width(), stage.height()]);
 
             // Configure default text color
             pdf.setTextColor('#000000');
@@ -1101,6 +1160,8 @@ function setupPdfExport() {
                 mimeType: 'image/png'  // Formato PNG por defecto
             });
 
+            const DPI_FACTOR = 1.3333;
+
             // ADD IMAGE TO PDF
             // Position (0,0) covers the entire PDF page
             pdf.addImage(
@@ -1108,8 +1169,8 @@ function setupPdfExport() {
                 'PNG',
                 0,
                 0,
-                stage.width(),
-                stage.height()
+                stage.width()/DPI_FACTOR,
+                stage.height()/DPI_FACTOR
             );
 
             // STEP 4: FILE DOWNLOAD
