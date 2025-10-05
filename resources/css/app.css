@@ -510,7 +510,7 @@ body {
 
 /* MAIN WORKSPACE AREA */
 .editor-workspace {
-    flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     background: #ffffff;
@@ -557,18 +557,20 @@ body {
 
 /* CANVAS CONTAINER */
 .canvas-container {
-    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background: #f8fafc;
     overflow: hidden;
 }
 
 .canvas-holder {
-    width: 100% !important;
     height: 100% !important;
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    margin: 1rem;
+    margin: 0 auto;
+
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
